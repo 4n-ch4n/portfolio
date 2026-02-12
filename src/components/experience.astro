@@ -1,0 +1,60 @@
+---
+import ExperienceCard from "./experience-card.astro";
+import type { Experience } from "../interfaces/experience.interface";
+
+const experiences: Experience[] = [
+  {
+    company: "Iglua",
+    role: "Fullstack Developer",
+    startDate: "Feb 2025",
+    endDate: "Present",
+    skillsUsed: [
+      "Node.js",
+      "Express",
+      "MongoDB",
+      "MySQL",
+      "Docker",
+      "Typescript",
+      "Microservices",
+      "Angular",
+      "Docker",
+    ],
+    description:
+      "Developed and scaled a comprehensive microservices-based ERP platform designed to manage complex field operations, service orders, and technical support tickets. The system features a distributed architecture handling authentication, heavy data processing, and dynamic reporting for enterprise clients.",
+    url: " https://iglua.com/",
+  },
+];
+---
+
+<section class="border-t border-slate-800 py-12 md:py-12" id="experience">
+  <div class="mx-auto max-w-6xl space-y-12">
+    <!-- Section Header -->
+    <div class="space-y-4 text-center">
+      <h2 class="text-4xl font-bold text-slate-800 md:text-5xl lg:text-6xl">
+        Work <span class="text-(--sec)">Experience</span>
+      </h2>
+      <p class="mx-auto max-w-2xl text-sm text-gray-600 md:text-base">
+        My professional journey in software development, building scalable
+        applications and solving complex problems.
+      </p>
+    </div>
+
+    <!-- Experience Cards -->
+    <div class="space-y-6 md:space-y-8">
+      {
+        experiences.map((exp) => (
+          <a href={exp.url} target="_blank">
+            <ExperienceCard
+              company={exp.company}
+              role={exp.role}
+              startDate={exp.startDate}
+              endDate={exp.endDate}
+              skillsUsed={exp.skillsUsed}
+              description={exp.description}
+            />
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>

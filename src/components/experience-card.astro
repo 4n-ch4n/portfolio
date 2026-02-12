@@ -1,0 +1,56 @@
+---
+interface Props {
+  company: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  skillsUsed: string[];
+  description: string;
+}
+
+const { company, role, startDate, endDate, skillsUsed, description } =
+  Astro.props;
+---
+
+<article
+  class="group relative overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:border-(--sec)/50 hover:shadow-xl md:p-8"
+>
+  <div
+    class="absolute inset-0 bg-linear-to-br from-(--sec)/0 to-(--sec)/0 transition-all duration-300 group-hover:from-(--sec)/5 group-hover:to-purple-500/5"
+  >
+  </div>
+
+  <div class="relative z-10 space-y-4">
+    <!-- Header -->
+    <div class="space-y-2">
+      <h3
+        class="text-2xl font-bold text-slate-800 transition-colors duration-300 group-hover:text-(--sec) md:text-3xl"
+      >
+        {role}
+      </h3>
+      <div class="flex flex-wrap items-center gap-2 text-sm md:text-base">
+        <span class="font-semibold text-(--sec)">{company}</span>
+        <span class="text-gray-400">•</span>
+        <span class="text-gray-600">
+          {startDate} - {endDate}
+        </span>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <p class="text-sm leading-relaxed text-gray-700 md:text-base">
+      {description}
+    </p>
+
+    <!-- Skills -->
+    <div class="flex flex-wrap gap-2 pt-2">
+      {
+        skillsUsed.map((skill) => (
+          <span class="rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-1.5 text-xs font-medium text-gray-700 transition-all duration-200 hover:border-(--sec)/50 hover:bg-(--sec)/10 hover:text-(--sec) md:text-sm">
+            {skill}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+</article>
