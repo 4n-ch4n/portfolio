@@ -50,7 +50,7 @@ const navItems: NavItem[] = [
 </div>
 
 <script>
-  document.addEventListener("astro:page-load", () => {
+  document.addEventListener("DOMContentLoaded", () => {
     const sections = document.querySelectorAll("section[id]");
     const navLinks = document.querySelectorAll("[data-nav-link]");
 
@@ -92,18 +92,26 @@ const navItems: NavItem[] = [
 
 <style>
   .nav-link.active {
-    background: linear-gradient(135deg, var(--sec) 0%, #8b5cf6 100%);
-    color: white;
-    box-shadow: 0 8px 20px rgba(164, 118, 255, 0.4);
-    transform: translateY(-2px);
+    color: var(--sec);
   }
 
-  .nav-link.active span {
-    transform: scale(1.15);
+  .nav-link.active span::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--sec);
+    border-radius: 50%;
+    margin-right: 6px;
+    margin-bottom: 2px;
   }
 
   .nav-link:hover {
     transform: translateY(-1px);
+  }
+
+  .nav-link:active {
+    transform: scale(0.95);
   }
 
   nav {

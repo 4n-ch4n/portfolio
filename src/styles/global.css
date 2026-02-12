@@ -1,2 +1,14 @@
 @import "tailwindcss";
 
+:root {
+  --sec: #7c3aed;
+  --pink: #ec4899;
+  --background: #0f172a;
+  --container: #1e293b;
+  --line: #334155;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
