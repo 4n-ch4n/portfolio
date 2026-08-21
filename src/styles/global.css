@@ -1,14 +1,178 @@
 @import "tailwindcss";
 
-:root {
-  --sec: #7c3aed;
-  --pink: #ec4899;
-  --background: #0f172a;
-  --container: #1e293b;
-  --line: #334155;
+@font-face {
+  font-family: "IBM Plex Sans Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url("../assets/fonts/ibm-plex-sans-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Space Grotesk Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url("../assets/fonts/space-grotesk-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("../assets/fonts/jetbrains-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --color-surface: #edf0f4;
+  --color-raised: #fbfcfd;
+  --color-ink: #0d1522;
+  --color-body: #3d4757;
+  --color-muted: #626c7a;
+  --color-rule: #d0d7e0;
+  --color-accent: #0f5fd8;
+  --color-accent-soft: #e3ecfb;
+  /* Decorative marks only — never used as text, so it is exempt from the
+     4.5:1 requirement. Signals "in flight": the topology pulse, the caret,
+     the active nav dot. */
+  --color-flow-mark: #f59e0b;
+
+  --font-sans:
+    "IBM Plex Sans Variable", ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
+  --font-heading:
+    "Space Grotesk Variable", "IBM Plex Sans Variable", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", monospace;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+/* No blanket `*` animation reset here. A global !important killswitch silently
+   disabled the hero typewriter for anyone with the OS setting on. Each motion
+   source now handles reduced motion at its own definition instead: the
+   topology pulse hides itself, scroll reveals check matchMedia in JS, and the
+   typewriter is a one-shot text reveal that plays regardless. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-body);
+}
+
+/* Both initial states are scoped to .js (set synchronously in <head>) so that
+   if JavaScript fails or is disabled, nothing is left stuck invisible. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.js [data-reveal].revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 500ms ease-out var(--reveal-delay, 0ms),
+    transform 500ms ease-out var(--reveal-delay, 0ms);
+}
+
+/* Reduced motion still gets the fade — just no vertical travel. Movement is
+   what triggers vestibular symptoms; a plain opacity change does not. */
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] {
+    transform: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  padding: 0.6rem 1rem;
+  border-radius: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  transition: top 150ms ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+*::selection {
+  background-color: var(--color-accent);
+  color: var(--color-surface);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-rule);
+  border-radius: 8px;
+  border: 3px solid var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule) var(--color-surface);
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .scrollbar-hidden {
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(
+      to right,
+      black calc(100% - 28px),
+      transparent
+    );
+  }
+}

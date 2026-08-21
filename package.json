@@ -2,22 +2,36 @@
   "name": "anthony-portfolio",
   "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.7",
-    "@fontsource-variable/montserrat": "^5.2.8",
-    "@tailwindcss/vite": "^4.1.18",
-    "astro": "^6.1.8",
-    "tailwindcss": "^4.1.18"
+    "@astrojs/sitemap": "^3.7.3",
+    "@iconify-json/simple-icons": "^1.2.93",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.2.4",
+    "astro-icon": "^1.2.0",
+    "tailwindcss": "^4.3.3",
+    "three": "^0.185.1"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/ts-plugin": "^1.10.11",
+    "@types/three": "^0.185.4",
+    "cookie": "^2.0.1",
     "prettier": "3.8.1",
     "prettier-plugin-astro": "0.14.1",
-    "prettier-plugin-tailwindcss": "^0.7.2"
+    "prettier-plugin-tailwindcss": "^0.7.4",
+    "typescript": "^5.9.3"
   }
 }

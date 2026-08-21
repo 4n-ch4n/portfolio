@@ -1,21 +1,29 @@
 ---
-import "../styles/global.css";
-
 import Layout from "../layouts/Layout.astro";
 import Nav from "../components/nav.astro";
 import Home from "../components/home.astro";
 import Experience from "../components/experience.astro";
-import Skills from "../components/skills.astro";
 import Projects from "../components/projects.astro";
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Skills from "../components/skills.astro";
+import Education from "../components/education.astro";
+import Contact from "../components/contact.astro";
+import Footer from "../components/footer.astro";
+import ScrollReveal from "../components/ScrollReveal.astro";
 ---
 
-<Layout title="Anthony Londono | Portfolio">
+<Layout
+  title="Anthony Londoño Calle | Full Stack Developer"
+  description="Full stack developer specializing in Node.js and clean architecture. Building distributed backends in production — five microservices at Iglua, hands-on Kubernetes, and a self-directed track into Go."
+>
   <Nav />
-  <Home />
-  <Experience />
-  <Skills />
-  <Projects />
+  <main id="main">
+    <Home />
+    <Experience />
+    <Projects />
+    <Skills />
+    <Education />
+    <Contact />
+  </main>
+  <Footer />
+  <ScrollReveal />
 </Layout>

@@ -1,62 +1,92 @@
 ---
-import "@fontsource-variable/montserrat";
 import "../styles/global.css";
 
 interface Props {
   title: string;
+  description?: string;
 }
 
-const { title } = Astro.props;
+const {
+  title,
+  description = "Full stack developer specializing in Node.js and clean architecture. Building distributed backends in production — microservices, Kubernetes, and reporting systems.",
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL("og-image.png", Astro.site);
+const base = import.meta.env.BASE_URL;
+
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Anthony Londoño Calle",
+  jobTitle: "Full Stack Developer",
+  url: canonicalURL.toString(),
+  email: "mailto:an7honycl06@gmail.com",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Medellín",
+    addressCountry: "CO",
+  },
+  sameAs: [
+    "https://github.com/4n-ch4n",
+    "https://www.linkedin.com/in/anthony-londono-97996b357",
+  ],
+};
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/jpeg" href="favicon.jpeg" />
-    <meta property="og:title" content="Anthony Londono" />
-    <meta property="og:description" content="Software Developer" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Anthony Londono Portfolio" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Anthony Londoño Calle" />
+    <link rel="canonical" href={canonicalURL} />
+
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href={`${base}favicon-32.png`}
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href={`${base}favicon-192.png`}
+    />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
+    <link rel="manifest" href={`${base}site.webmanifest`} />
+    <meta name="theme-color" content="#0f5fd8" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:site_name" content="Anthony Londoño Calle" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(personSchema)}
+    />
   </head>
 
-  <body class="bg-slate-100 px-9 sm:px-28 lg:px-20">
+  <body class="bg-surface font-sans text-body antialiased">
+    <a href="#main" class="skip-link">Skip to content</a>
     <slot />
   </body>
 </html>
-
-<style is:global>
-  *::selection {
-    background-color: var(--sec);
-    color: var(--background);
-  }
-
-  /* Scrollbar styles */
-
-  ::-webkit-scrollbar {
-    width: 15px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--container);
-    border-radius: 30px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--background);
-    border-radius: 10px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--pink);
-  }
-
-  /* Scrollbar styles for Firefox */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--line) var(--container);
-  }
-</style>

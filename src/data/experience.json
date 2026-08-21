@@ -1,0 +1,51 @@
+[
+  {
+    "id": "iglua",
+    "company": "Iglua",
+    "role": "Full Stack Developer",
+    "startDate": "Feb 2025",
+    "endDate": "Present",
+    "location": "Medellín, Colombia",
+    "url": "https://iglua.com/",
+    "highlights": [
+      {
+        "title": "Iglua Órdenes",
+        "body": "A field-operations SaaS for service orders and technical support tickets. Five core microservices on a hybrid SQL/NoSQL architecture — relational integrity where orders need it, document storage where client-driven templates need to stay flexible."
+      },
+      {
+        "title": "Reporting engine",
+        "body": "Built with Hono and I/O streams. This is the piece that took the company's core business process off physical paper and into the product — the migration, not just the feature."
+      },
+      {
+        "title": "A production reliability fix",
+        "body": "The reporting pods were spiking memory under load in Kubernetes. I traced it to unbounded concurrency and added a strict max-concurrency mechanism, which flattened RAM usage under heavy traffic."
+      },
+      {
+        "title": "A centralized query engine",
+        "body": "Filtering, pagination, and date-range parameters used to mean several round trips. I consolidated them into single-trip API calls, cutting network overhead across every consuming service."
+      },
+      {
+        "title": "Backend migration",
+        "body": "Led the migration of a new core service onto an InversifyJS dependency-injection architecture, so wiring is declared rather than hand-constructed and services can be swapped in tests."
+      },
+      {
+        "title": "Angular frontends",
+        "body": "Built with Signals and Reactive Forms to keep Zone.js overhead down, with PrimeNG for the heavier views — dynamic calendars, historical template comparisons."
+      }
+    ],
+    "skillsUsed": [
+      "TypeScript",
+      "NodeJS",
+      "Hono",
+      "Express",
+      "MongoDB",
+      "MySQL",
+      "Docker",
+      "Kubernetes",
+      "Angular",
+      "Microservices",
+      "Lambda",
+      "Astro"
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+---
+
+---
+
+<script>
+  const targets = document.querySelectorAll<HTMLElement>("[data-reveal]");
+  const revealAll = () => targets.forEach((el) => el.classList.add("revealed"));
+
+  // Reduced motion is handled in CSS, not here: those users still get the fade,
+  // just without the vertical movement. Opacity alone is not a vestibular
+  // trigger — translation, parallax and zoom are. Skipping the reveal entirely
+  // would mean no animation at all for anyone with the OS setting on.
+  if (!("IntersectionObserver" in window)) {
+    revealAll();
+  } else {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add("revealed");
+          observer.unobserve(entry.target);
+        }
+      },
+      // The huge top margin makes "already scrolled past" count as
+      // intersecting. Without it, jumping down the page (nav anchors, End key,
+      // a fast wheel) skips elements from below-viewport straight to
+      // above-viewport without ever intersecting, leaving them invisible for
+      // good. The -10% bottom keeps elements armed until they are properly in
+      // view.
+      { rootMargin: "9999px 0px -10% 0px", threshold: 0 },
+    );
+
+    targets.forEach((el) => observer.observe(el));
+  }
+</script>

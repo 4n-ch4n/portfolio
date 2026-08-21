@@ -1,0 +1,470 @@
+---
+import HeroTopology from "./HeroTopology.astro";
+---
+
+<figure class="space-y-3">
+  <div class="relative w-full" style="aspect-ratio: 7 / 6;" data-hero-mesh>
+    <div class="absolute inset-0 grid place-items-center" data-mesh-fallback>
+      <HeroTopology />
+    </div>
+    <canvas
+      class="absolute inset-0 block h-full w-full opacity-0 transition-opacity duration-700"
+      data-mesh-canvas
+      aria-hidden="true"></canvas>
+    <div class="pointer-events-none absolute inset-0" data-mesh-labels></div>
+  </div>
+
+  <figcaption class="font-mono text-xs leading-relaxed text-muted">
+    <span class="text-body">an-microservices</span> — a request routed through the
+    gateway to a service and its datastore
+  </figcaption>
+</figure>
+
+<style>
+  :global([data-mesh-label]) {
+    position: absolute;
+    transform: translate(-50%, 10px);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    color: var(--color-ink);
+    background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+    padding: 1px 5px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 700ms ease;
+  }
+
+  :global([data-mesh-label][data-kind="store"]) {
+    color: var(--color-muted);
+    font-size: 9px;
+  }
+
+  :global([data-mesh-ready] [data-mesh-label]) {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  type Node = {
+    id: string;
+    label: string;
+    kind: "client" | "gateway" | "service" | "store";
+    pos: [number, number, number];
+  };
+
+  const NODES: Node[] = [
+    { id: "client", label: "client", kind: "client", pos: [-3.15, 0.25, 0.2] },
+    { id: "gateway", label: "gateway", kind: "gateway", pos: [-1.05, 0, 0] },
+    { id: "auth", label: "auth", kind: "service", pos: [0.75, 1.62, -0.65] },
+    {
+      id: "products",
+      label: "products",
+      kind: "service",
+      pos: [1.05, 0.42, 0.85],
+    },
+    {
+      id: "orders",
+      label: "orders",
+      kind: "service",
+      pos: [0.85, -0.82, -0.5],
+    },
+    {
+      id: "payments",
+      label: "payments",
+      kind: "service",
+      pos: [0.6, -1.9, 0.7],
+    },
+    { id: "mongo", label: "MongoDB", kind: "store", pos: [2.65, 2.15, -1.05] },
+    { id: "sqlite", label: "SQLite", kind: "store", pos: [2.9, 0.72, 1.2] },
+    {
+      id: "postgres",
+      label: "Postgres",
+      kind: "store",
+      pos: [2.7, -1.1, -0.85],
+    },
+    { id: "stripe", label: "Stripe", kind: "store", pos: [2.4, -2.35, 1.0] },
+  ];
+
+  const STORE_OF: Record<string, string> = {
+    auth: "mongo",
+    products: "sqlite",
+    orders: "postgres",
+    payments: "stripe",
+  };
+  const SERVICES = ["auth", "products", "orders", "payments"];
+
+  const EDGES: [string, string][] = [
+    ["client", "gateway"],
+    ...SERVICES.map((s) => ["gateway", s] as [string, string]),
+    ...SERVICES.map((s) => [s, STORE_OF[s]] as [string, string]),
+  ];
+
+  const SIZE: Record<Node["kind"], number> = {
+    client: 20,
+    gateway: 46,
+    service: 30,
+    store: 16,
+  };
+
+  const root = document.querySelector<HTMLElement>("[data-hero-mesh]");
+  const canvas = root?.querySelector<HTMLCanvasElement>("[data-mesh-canvas]");
+  const fallback = root?.querySelector<HTMLElement>("[data-mesh-fallback]");
+  const labelHost = root?.querySelector<HTMLElement>("[data-mesh-labels]");
+
+  const start = async () => {
+    if (!root || !canvas || !fallback || !labelHost) return;
+
+    // Bail before loading three if the browser cannot render it at all.
+    const probe = document.createElement("canvas");
+    if (!probe.getContext("webgl2") && !probe.getContext("webgl")) return;
+
+    let THREE: typeof import("../lib/three-min");
+    try {
+      THREE = await import("../lib/three-min");
+    } catch {
+      return; // fallback schematic stays visible
+    }
+
+    const css = getComputedStyle(document.documentElement);
+    const token = (n: string, f: string) => css.getPropertyValue(n).trim() || f;
+    const ACCENT = new THREE.Color(token("--color-accent", "#0f5fd8"));
+    const FLOW = new THREE.Color(token("--color-flow-mark", "#f59e0b"));
+    const MUTED = new THREE.Color(token("--color-muted", "#626c7a"));
+
+    let renderer: import("../lib/three-min").WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: true,
+        powerPreference: "low-power",
+      });
+    } catch {
+      return;
+    }
+    renderer.setClearAlpha(0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.4);
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const vec = (n: Node) => new THREE.Vector3(...n.pos);
+    const byId = new Map(NODES.map((n) => [n.id, n]));
+
+    // ---- edges -------------------------------------------------------
+    const edgePts: number[] = [];
+    for (const [a, b] of EDGES) {
+      edgePts.push(...byId.get(a)!.pos, ...byId.get(b)!.pos);
+    }
+    const edgeGeo = new THREE.BufferGeometry();
+    edgeGeo.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(edgePts, 3),
+    );
+    group.add(
+      new THREE.LineSegments(
+        edgeGeo,
+        new THREE.LineBasicMaterial({
+          color: MUTED,
+          transparent: true,
+          opacity: 0.45,
+        }),
+      ),
+    );
+
+    // ---- nodes -------------------------------------------------------
+    const nodePos = new Float32Array(NODES.length * 3);
+    const nodeCol = new Float32Array(NODES.length * 3);
+    const nodeSize = new Float32Array(NODES.length);
+    const basePulse = new Float32Array(NODES.length);
+    NODES.forEach((n, i) => {
+      nodePos.set(n.pos, i * 3);
+      const c = n.kind === "store" || n.kind === "client" ? MUTED : ACCENT;
+      nodeCol.set([c.r, c.g, c.b], i * 3);
+      nodeSize[i] = SIZE[n.kind];
+    });
+
+    const nodeGeo = new THREE.BufferGeometry();
+    nodeGeo.setAttribute("position", new THREE.BufferAttribute(nodePos, 3));
+    nodeGeo.setAttribute("aColor", new THREE.BufferAttribute(nodeCol, 3));
+    nodeGeo.setAttribute("aSize", new THREE.BufferAttribute(nodeSize, 1));
+
+    const dotShader = {
+      vertex: `
+        attribute float aSize;
+        attribute vec3 aColor;
+        varying vec3 vColor;
+        varying float vFade;
+        uniform float uScale;
+        void main() {
+          vColor = aColor;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          // nearer to camera reads brighter — cheap depth cue without fog
+          vFade = smoothstep(-11.0, -7.4, mv.z);
+          gl_PointSize = aSize * uScale * (9.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragment: `
+        varying vec3 vColor;
+        varying float vFade;
+        uniform float uCore;
+        void main() {
+          float d = length(gl_PointCoord - 0.5);
+          if (d > 0.5) discard;
+          float halo = smoothstep(0.5, 0.30, d);
+          float core = smoothstep(0.26, 0.04, d);
+          float a = (halo * 0.30 + core * uCore) * mix(0.6, 1.0, vFade);
+          gl_FragColor = vec4(vColor, a);
+        }`,
+    };
+
+    const nodeMat = new THREE.ShaderMaterial({
+      uniforms: { uCore: { value: 0.95 }, uScale: { value: 1 } },
+      vertexShader: dotShader.vertex,
+      fragmentShader: dotShader.fragment,
+      transparent: true,
+      depthWrite: false,
+    });
+    group.add(new THREE.Points(nodeGeo, nodeMat));
+
+    // ---- packets -----------------------------------------------------
+    const MAX = 44;
+    const pkPos = new Float32Array(MAX * 3);
+    const pkCol = new Float32Array(MAX * 3);
+    const pkSize = new Float32Array(MAX);
+    const pkGeo = new THREE.BufferGeometry();
+    pkGeo.setAttribute("position", new THREE.BufferAttribute(pkPos, 3));
+    pkGeo.setAttribute("aColor", new THREE.BufferAttribute(pkCol, 3));
+    pkGeo.setAttribute("aSize", new THREE.BufferAttribute(pkSize, 1));
+    const pkMat = new THREE.ShaderMaterial({
+      uniforms: { uCore: { value: 1.0 }, uScale: { value: 1 } },
+      vertexShader: dotShader.vertex,
+      fragmentShader: dotShader.fragment,
+      transparent: true,
+      depthWrite: false,
+    });
+    group.add(new THREE.Points(pkGeo, pkMat));
+
+    type Packet = {
+      route: import("../lib/three-min").Vector3[];
+      ends: number[];
+      seg: number;
+      t: number;
+      speed: number;
+      slow: boolean;
+    };
+    const live: Packet[] = [];
+
+    const spawn = () => {
+      if (live.length >= MAX) return;
+      const svc = SERVICES[(Math.random() * SERVICES.length) | 0];
+      const ids = ["client", "gateway", svc, STORE_OF[svc]];
+      live.push({
+        route: ids.map((id) => vec(byId.get(id)!)),
+        ends: ids.map((id) => NODES.findIndex((n) => n.id === id)),
+        seg: 0,
+        t: 0,
+        speed: 0.85 + Math.random() * 0.5,
+        slow: Math.random() < 0.15,
+      });
+    };
+
+    // ---- labels ------------------------------------------------------
+    const labelled = NODES.filter((n) => n.kind !== "client");
+    const labelEls = labelled.map((n) => {
+      const el = document.createElement("div");
+      el.textContent = n.label;
+      el.setAttribute("data-mesh-label", "");
+      el.setAttribute("data-kind", n.kind);
+      labelHost.appendChild(el);
+      return el;
+    });
+    const proj = new THREE.Vector3();
+
+    // ---- motion policy ------------------------------------------------
+    // `calm` only suppresses the AUTONOMOUS drift — the ambient movement that
+    // happens whether or not you touch anything, which is what reduced motion
+    // is actually protecting against. Pointer parallax stays on for everyone:
+    // it is direct manipulation, so nothing moves unless the viewer moves the
+    // pointer themselves.
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let calm = mq.matches;
+    mq.addEventListener?.("change", (e) => {
+      calm = e.matches;
+    });
+
+    // Track across the whole hero, not just the canvas box — otherwise the
+    // parallax only answers while the pointer is over the mesh itself.
+    const field: HTMLElement = root.closest("section") ?? root;
+    let ptrX = 0;
+    let ptrY = 0;
+    let aimX = 0;
+    let aimY = 0;
+
+    field.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const r = field.getBoundingClientRect();
+      aimX = Math.max(
+        -1,
+        Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2),
+      );
+      aimY = Math.max(
+        -1,
+        Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2),
+      );
+    });
+    field.addEventListener("pointerleave", () => {
+      aimX = 0;
+      aimY = 0;
+    });
+
+    // ---- sizing -------------------------------------------------------
+    const resize = () => {
+      const r = root.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(r.width, r.height, false);
+      // gl_PointSize is in device pixels, so without this the nodes look
+      // proportionally huge on a narrow phone canvas.
+      const s = Math.min(1, r.width / 520);
+      nodeMat.uniforms.uScale.value = s;
+      pkMat.uniforms.uScale.value = s;
+      camera.aspect = r.width / r.height;
+      camera.updateProjectionMatrix();
+    };
+    resize();
+    new ResizeObserver(resize).observe(root);
+
+    // ---- loop ---------------------------------------------------------
+    let raf = 0;
+    let running = true;
+    let last = performance.now();
+    let acc = 0;
+    let clock = 0;
+
+    const frame = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      clock += dt;
+
+      // ease the pointer itself so a fast flick doesn't snap the view
+      ptrX += (aimX - ptrX) * 0.09;
+      ptrY += (aimY - ptrY) * 0.09;
+
+      const driftY = calm ? 0.22 : Math.sin(clock * 0.13) * 0.3;
+      const driftX = calm ? -0.1 : Math.sin(clock * 0.1) * 0.1;
+      const targetY = driftY + ptrX * 0.34;
+      const targetX = driftX - ptrY * 0.22;
+      group.rotation.y += (targetY - group.rotation.y) * 0.07;
+      group.rotation.x += (targetX - group.rotation.x) * 0.07;
+
+      // shifting the camera as well as rotating the graph is what actually
+      // reads as depth — rotation alone just looks like the object turning
+      camera.position.x += (ptrX * 0.9 - camera.position.x) * 0.07;
+      camera.position.y += (-ptrY * 0.55 - camera.position.y) * 0.07;
+      camera.lookAt(0, 0, 0);
+
+      acc += dt * 7.4;
+      while (acc >= 1) {
+        acc -= 1;
+        spawn();
+      }
+
+      for (let i = live.length - 1; i >= 0; i--) {
+        const p = live[i];
+        p.t += dt * p.speed * (p.slow ? 0.45 : 1);
+        while (p.t >= 1 && p.seg < p.route.length - 2) {
+          p.t -= 1;
+          p.seg++;
+          basePulse[p.ends[p.seg]] = 1;
+        }
+        if (p.t >= 1 && p.seg >= p.route.length - 2) {
+          basePulse[p.ends[p.route.length - 1]] = 1;
+          live.splice(i, 1);
+        }
+      }
+
+      let n = 0;
+      for (const p of live) {
+        const a = p.route[p.seg];
+        const b = p.route[p.seg + 1];
+        const t = Math.min(p.t, 1);
+        pkPos[n * 3] = a.x + (b.x - a.x) * t;
+        pkPos[n * 3 + 1] = a.y + (b.y - a.y) * t;
+        pkPos[n * 3 + 2] = a.z + (b.z - a.z) * t;
+        const c = p.slow ? FLOW : ACCENT;
+        pkCol.set([c.r, c.g, c.b], n * 3);
+        pkSize[n] = p.slow ? 13 : 10;
+        n++;
+      }
+      for (let i = n; i < MAX; i++) pkSize[i] = 0;
+      pkGeo.setDrawRange(0, MAX);
+      pkGeo.attributes.position.needsUpdate = true;
+      pkGeo.attributes.aColor.needsUpdate = true;
+      pkGeo.attributes.aSize.needsUpdate = true;
+
+      for (let i = 0; i < NODES.length; i++) {
+        if (basePulse[i] > 0) basePulse[i] = Math.max(0, basePulse[i] - dt * 2);
+        nodeSize[i] = SIZE[NODES[i].kind] * (1 + basePulse[i] * 0.55);
+      }
+      nodeGeo.attributes.aSize.needsUpdate = true;
+
+      group.updateMatrixWorld();
+      const r = renderer.domElement;
+      labelled.forEach((node, i) => {
+        proj
+          .set(...node.pos)
+          .applyMatrix4(group.matrixWorld)
+          .project(camera);
+        const el = labelEls[i];
+        el.style.left = `${(proj.x * 0.5 + 0.5) * 100}%`;
+        el.style.top = `${(-proj.y * 0.5 + 0.5) * 100}%`;
+      });
+      void r;
+
+      renderer.render(scene, camera);
+      if (running) raf = requestAnimationFrame(frame);
+    };
+
+    // Only run while the hero is on screen — a WebGL loop behind the fold is
+    // pure battery cost.
+    const vis = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting && !running) {
+          running = true;
+          last = performance.now();
+          raf = requestAnimationFrame(frame);
+        } else if (!e.isIntersecting && running) {
+          running = false;
+          cancelAnimationFrame(raf);
+        }
+      }
+    });
+    vis.observe(root);
+
+    canvas.addEventListener("webglcontextlost", (e) => {
+      e.preventDefault();
+      running = false;
+      cancelAnimationFrame(raf);
+      canvas.style.opacity = "0";
+      fallback.style.visibility = "visible";
+    });
+
+    // hand over from the static schematic
+    fallback.style.visibility = "hidden";
+    canvas.classList.remove("opacity-0");
+    root.setAttribute("data-mesh-ready", "");
+    raf = requestAnimationFrame(frame);
+  };
+
+  const idle = (window as any).requestIdleCallback;
+  if (typeof idle === "function") {
+    idle(start, { timeout: 1500 });
+  } else {
+    window.setTimeout(start, 200);
+  }
+</script>

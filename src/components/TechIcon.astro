@@ -1,0 +1,28 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  icon?: string;
+  class?: string;
+}
+
+const { icon, class: className = "size-3.5" } = Astro.props;
+---
+
+{
+  icon ? (
+    <Icon name={`simple-icons:${icon}`} class={className} aria-hidden="true" />
+  ) : (
+    <svg
+      viewBox="0 0 12 12"
+      class={className}
+      fill="none"
+      aria-hidden="true"
+      stroke="currentColor"
+      stroke-width="1.25"
+    >
+      <circle cx="6" cy="6" r="4" />
+      <circle cx="6" cy="6" r="1.25" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}

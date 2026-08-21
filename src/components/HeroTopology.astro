@@ -1,0 +1,164 @@
+---
+const services = [
+  { id: "auth", label: "auth", store: "MongoDB", y: 34 },
+  { id: "products", label: "products", store: "SQLite", y: 108 },
+  { id: "orders", label: "orders", store: "Postgres", y: 182 },
+  { id: "payments", label: "payments", store: "Stripe", y: 256 },
+];
+
+const GATEWAY_X = 96;
+const GATEWAY_Y = 145;
+const SERVICE_X = 214;
+const BOX_W = 104;
+const BOX_H = 40;
+---
+
+<figure class="space-y-3">
+  <svg
+    viewBox="0 22 326 284"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby="topology-title topology-desc"
+    class="topology h-auto w-full"
+  >
+    <title id="topology-title">Service topology</title>
+    <desc id="topology-desc">
+      A client calls an API gateway, which communicates over a NATS message
+      broker with four independent services — auth on MongoDB, products on
+      SQLite, orders on PostgreSQL, and payments on Stripe.
+    </desc>
+
+    <rect
+      x="8"
+      y={GATEWAY_Y - 14}
+      width="56"
+      height="28"
+      rx="4"
+      class="node-quiet"></rect>
+    <text x="36" y={GATEWAY_Y + 4} class="label-sm">client</text>
+
+    <line x1="64" y1={GATEWAY_Y} x2={GATEWAY_X} y2={GATEWAY_Y} class="edge"
+    ></line>
+
+    <rect
+      x={GATEWAY_X}
+      y={GATEWAY_Y - 22}
+      width="72"
+      height="44"
+      rx="5"
+      class="node-primary"></rect>
+    <text x={GATEWAY_X + 36} y={GATEWAY_Y - 2} class="label">gateway</text>
+    <text x={GATEWAY_X + 36} y={GATEWAY_Y + 12} class="label-xs">NATS</text>
+
+    {
+      services.map((service, i) => {
+        const midX = (GATEWAY_X + 72 + SERVICE_X) / 2;
+        const targetY = service.y + BOX_H / 2;
+        const d = `M${GATEWAY_X + 72},${GATEWAY_Y} H${midX} V${targetY} H${SERVICE_X}`;
+        return (
+          <>
+            <path d={d} class="edge" fill="none" />
+            <path
+              d={d}
+              class="pulse"
+              fill="none"
+              style={`animation-delay:${i * 0.65}s`}
+            />
+            <rect
+              x={SERVICE_X}
+              y={service.y}
+              width={BOX_W}
+              height={BOX_H}
+              rx="5"
+              class="node"
+            />
+            <text x={SERVICE_X + BOX_W / 2} y={service.y + 17} class="label">
+              {service.label}
+            </text>
+            <text x={SERVICE_X + BOX_W / 2} y={service.y + 30} class="label-xs">
+              {service.store}
+            </text>
+          </>
+        );
+      })
+    }
+  </svg>
+
+  <figcaption class="font-mono text-xs leading-relaxed text-muted">
+    <span class="text-body">an-microservices</span> — gateway, NATS, per-service datastores
+  </figcaption>
+</figure>
+
+<style>
+  .node,
+  .node-primary,
+  .node-quiet {
+    stroke-width: 1.25;
+  }
+
+  .node {
+    fill: var(--color-raised);
+    stroke: var(--color-accent);
+  }
+
+  .node-primary {
+    fill: var(--color-accent-soft);
+    stroke: var(--color-accent);
+  }
+
+  .node-quiet {
+    fill: none;
+    stroke: var(--color-muted);
+  }
+
+  .edge {
+    stroke: var(--color-rule);
+    stroke-width: 1.25;
+  }
+
+  .label,
+  .label-sm,
+  .label-xs {
+    font-family: var(--font-mono);
+    text-anchor: middle;
+    fill: var(--color-ink);
+  }
+
+  .label {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .label-sm {
+    font-size: 10px;
+    fill: var(--color-muted);
+  }
+
+  .label-xs {
+    font-size: 8.5px;
+    fill: var(--color-muted);
+  }
+
+  .pulse {
+    stroke: var(--color-flow-mark);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 14 400;
+    animation: flow 2.6s linear infinite;
+  }
+
+  @keyframes flow {
+    from {
+      stroke-dashoffset: 414;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse {
+      display: none;
+    }
+  }
+</style>

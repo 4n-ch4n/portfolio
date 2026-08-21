@@ -1,0 +1,75 @@
+[
+  {
+    "id": "subscription-orchestrator",
+    "order": 1,
+    "title": "Subscription Management Platform",
+    "kind": "personal",
+    "stack": [
+      "TypeScript",
+      "Hono",
+      "MySQL",
+      "MongoDB",
+      "PostgreSQL",
+      "React",
+      "AWS CDK",
+      "Lambda",
+      "EventBridge",
+      "Docker"
+    ],
+    "body": [
+      "Three services — identity, tenant management, and billing — each with its own database (MySQL, MongoDB, Postgres), behind a React SPA. This repo is the orchestrator: the services live in separate repos, wired in as Git submodules, and docker compose up boots all three plus their databases with seeded schemas.",
+      "Each service is layered domain → application → infrastructure → presentation, and the two SQL services skip an ORM in favor of a hand-rolled QueryBuilder and TransactionManager — joins, pagination, and transaction boundaries are explicit instead of inferred.",
+      "Multi-tenancy works by re-issuing the JWT when a user switches organizations, rather than trusting a header on each request — the token itself carries which org you're acting as and what you're allowed to do there.",
+      "Creating a company synchronously calls the billing service over HTTP to provision its subscription. That's a real coupling point: if the call fails, the company still exists without a subscription — there's no saga or compensating transaction. That's the first thing I'd add if this needed to hold up past a portfolio piece.",
+      "Recurring billing runs outside the request path, on two Lambdas over daily EventBridge schedules. Renewal processes one subscription per transaction so a bad row doesn't block the batch; expiration is a single set-based UPDATE since it doesn't need per-row logic. Feature entitlements are their own endpoint, so other services can check quota without embedding billing logic."
+    ],
+    "repo": "https://github.com/4n-ch4n/subscription-management-system"
+  },
+  {
+    "id": "distributed-microservices-system",
+    "order": 2,
+    "title": "Distributed Microservices System",
+    "kind": "personal",
+    "stack": [
+      "TypeScript",
+      "NestJS",
+      "NATS",
+      "Prisma",
+      "PostgreSQL",
+      "MongoDB",
+      "SQLite",
+      "Stripe",
+      "Docker"
+    ],
+    "body": [
+      "Six repos: an API gateway in front of auth, products, orders, and payments services, with NATS handling async communication between them. Stripe is integrated in payments.",
+      "The part worth pointing at — each service uses a different datastore on purpose. Postgres for orders, MongoDB for auth, SQLite for products, all behind Prisma. Not because a system this size needs three databases, but because I wanted to work through what per-service persistence actually costs you: migrations, local dev setup, and the fact that you give up joins across service boundaries whether you planned for it or not.",
+      "The whole stack comes up with one docker compose up. Built independently."
+    ],
+    "repo": "https://github.com/an-microservices/launcher"
+  },
+  {
+    "id": "iglua-fsm",
+    "order": 3,
+    "title": "Iglua Órdenes — field service management",
+    "kind": "work",
+    "stack": [
+      "TypeScript",
+      "NodeJS",
+      "Hono",
+      "Express",
+      "MongoDB",
+      "MySQL",
+      "Docker",
+      "Kubernetes",
+      "Angular",
+      "Microservices",
+      "Lambda"
+    ],
+    "body": [
+      "The product I work on at Iglua: service orders, technician dispatch, and support tickets for companies running field operations. Five core services on a hybrid SQL/NoSQL split — MySQL where orders need relational integrity, MongoDB where client-defined report templates need to stay schemaless.",
+      "My work here is covered in more detail under Experience — the Hono reporting engine that replaced a paper process, the Kubernetes memory fix, and the centralized query engine. Listed here because it's the system most of my production time goes into, not as a separate project."
+    ],
+    "demo": "https://app.iglua.com"
+  }
+]

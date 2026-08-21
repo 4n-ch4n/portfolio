@@ -1,56 +1,70 @@
 ---
-interface Props {
-  company: string;
-  role: string;
-  startDate: string;
-  endDate: string;
-  skillsUsed: string[];
-  description: string;
-}
+import type { CollectionEntry } from "astro:content";
 
-const { company, role, startDate, endDate, skillsUsed, description } =
-  Astro.props;
+type Props = CollectionEntry<"experience">["data"];
+
+const {
+  company,
+  role,
+  startDate,
+  endDate,
+  location,
+  highlights,
+  skillsUsed,
+  url,
+} = Astro.props;
 ---
 
 <article
-  class="group relative overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:border-(--sec)/50 hover:shadow-xl md:p-8"
+  class="space-y-7 rounded-lg border border-rule bg-raised p-6 transition-colors duration-150 hover:border-accent md:p-8"
 >
-  <div
-    class="absolute inset-0 bg-linear-to-br from-(--sec)/0 to-(--sec)/0 transition-all duration-300 group-hover:from-(--sec)/5 group-hover:to-purple-500/5"
-  >
-  </div>
-
-  <div class="relative z-10 space-y-4">
-    <!-- Header -->
-    <div class="space-y-2">
-      <h3
-        class="text-2xl font-bold text-slate-800 transition-colors duration-300 group-hover:text-(--sec) md:text-3xl"
-      >
+  <div class="space-y-2">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h3 class="font-heading text-2xl font-semibold text-ink md:text-3xl">
         {role}
       </h3>
-      <div class="flex flex-wrap items-center gap-2 text-sm md:text-base">
-        <span class="font-semibold text-(--sec)">{company}</span>
-        <span class="text-gray-400">•</span>
-        <span class="text-gray-600">
-          {startDate} - {endDate}
-        </span>
-      </div>
+      <span class="font-mono text-sm text-muted">{startDate} – {endDate}</span>
     </div>
-
-    <!-- Description -->
-    <p class="text-sm leading-relaxed text-gray-700 md:text-base">
-      {description}
-    </p>
-
-    <!-- Skills -->
-    <div class="flex flex-wrap gap-2 pt-2">
-      {
-        skillsUsed.map((skill) => (
-          <span class="rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-1.5 text-xs font-medium text-gray-700 transition-all duration-200 hover:border-(--sec)/50 hover:bg-(--sec)/10 hover:text-(--sec) md:text-sm">
-            {skill}
-          </span>
-        ))
-      }
+    <div class="flex flex-wrap items-center gap-2 text-sm md:text-base">
+      <span class="font-semibold text-accent">{company}</span>
+      <span class="text-muted">·</span>
+      <span class="text-muted">{location}</span>
     </div>
   </div>
+
+  <dl class="space-y-5 border-l border-rule pl-6">
+    {
+      highlights.map((highlight) => (
+        <div class="relative">
+          <span
+            class="absolute top-2 -left-6.25 size-2 rounded-full border border-accent bg-raised"
+            aria-hidden="true"
+          />
+          <dt class="font-heading font-semibold text-ink">{highlight.title}</dt>
+          <dd class="mt-1 max-w-[62ch] text-sm leading-relaxed text-body md:text-base">
+            {highlight.body}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <div class="flex flex-wrap gap-2 border-t border-rule pt-5">
+    {
+      skillsUsed.map((skill) => (
+        <span class="rounded-md border border-rule px-2.5 py-1 font-mono text-xs text-body">
+          {skill}
+        </span>
+      ))
+    }
+  </div>
+
+  <a
+    href={url}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="inline-block font-mono text-sm text-body underline decoration-rule underline-offset-4 transition-colors duration-150 hover:text-accent hover:decoration-accent"
+  >
+    {company} ↗
+  </a>
 </article>
